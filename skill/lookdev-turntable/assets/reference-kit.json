@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "id": "dcc-lookdev-reference-kit",
+  "license": "MIT-0 for original templates; external assets retain their declared licenses",
+  "reference_group": {
+    "camera_space": true,
+    "anchor": "lower-left",
+    "order": ["gray_18", "diffuse_white_80", "chrome_mirror", "chart"],
+    "animated": false
+  },
+  "spheres": [
+    {
+      "id": "gray_18",
+      "label": "18% Gray",
+      "material": {
+        "base_color_linear": [0.18, 0.18, 0.18],
+        "metallic": 0.0,
+        "roughness": 0.65,
+        "emissive": false
+      }
+    },
+    {
+      "id": "diffuse_white_80",
+      "label": "80% Diffuse White",
+      "material": {
+        "base_color_linear": [0.8, 0.8, 0.8],
+        "metallic": 0.0,
+        "roughness": 0.65,
+        "emissive": false
+      }
+    },
+    {
+      "id": "chrome_mirror",
+      "label": "Chrome",
+      "material": {
+        "base_color_linear": [0.9, 0.9, 0.9],
+        "metallic": 1.0,
+        "roughness": 0.0,
+        "emissive": false
+      }
+    }
+  ],
+  "charts": [
+    {
+      "id": "dcc_digital_reference_24",
+      "kind": "digital_display_reference",
+      "license": "MIT-0",
+      "usage": "unlit technical color-pipeline validation only",
+      "color_space": "sRGB / Rec.709 primaries",
+      "encoding": "sRGB transfer, 8-bit full range",
+      "layout": {"rows": 4, "columns": 6},
+      "swatches_srgb8": [
+        [172, 72, 72], [184, 118, 66], [176, 166, 70], [88, 150, 80], [72, 126, 172], [132, 84, 172],
+        [230, 52, 52], [230, 126, 40], [228, 218, 46], [52, 192, 72], [42, 140, 228], [142, 52, 228],
+        [96, 30, 30], [96, 60, 30], [94, 92, 30], [30, 92, 44], [30, 58, 96], [58, 30, 96],
+        [16, 16, 16], [48, 48, 48], [82, 82, 82], [118, 118, 118], [180, 180, 180], [235, 235, 235]
+      ]
+    },
+    {
+      "id": "physical_colorchecker_24",
+      "kind": "physical_measured_reference",
+      "bundled_values": false,
+      "usage": "lit material and exposure evaluation",
+      "dataset": "ColorChecker 2005",
+      "source_url": "https://github.com/colour-science/colour",
+      "source_ref": "7082a604a6d988d314576c0343c7f5008b4b5171",
+      "license_note": "Colour is BSD-3-Clause; its BabelColor measurements are used by permission. Supply or generate the measured chart under its applicable terms."
+    }
+  ],
+  "hdri_presets": [
+    {
+      "id": "studio_small_09",
+      "label": "Neutral soft studio",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/studio_small_09",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/studio_small_09_2k.hdr",
+      "bytes": 6312947,
+      "hash": {"algorithm": "md5", "value": "b056fea247bc84b81d2e0987d44c87d8"},
+      "color_intent": "scene-linear HDR"
+    },
+    {
+      "id": "photo_studio_01",
+      "label": "Cool fluorescent studio",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/photo_studio_01",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/photo_studio_01_2k.hdr",
+      "bytes": 6375901,
+      "hash": {"algorithm": "md5", "value": "f00538a101775f76b3f2e96304e8311e"},
+      "color_intent": "scene-linear HDR"
+    },
+    {
+      "id": "aristea_wreck_puresky",
+      "label": "Partly cloudy daylight",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/aristea_wreck_puresky",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/aristea_wreck_puresky_2k.hdr",
+      "bytes": 5345625,
+      "hash": {"algorithm": "md5", "value": "e764c66f871ab0987f3fac422edc841d"},
+      "color_intent": "scene-linear HDR"
+    }
+  ]
+}
