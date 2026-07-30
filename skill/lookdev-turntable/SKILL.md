@@ -11,11 +11,12 @@ allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.1.0"
+    version: "0.1.1"
     layer: domain
     stage: presentation
     tags: [lookdev, pbr, turntable, hdri, color-management, render]
     search-hint: "standard PBR lookdev stage, fixed ColorChecker, 18 percent gray sphere, chrome sphere, HDRI, subject-only turntable"
+    tools: tools.yaml
     references:
       - "references/*.md"
 ---
@@ -63,6 +64,10 @@ adapter without hard-coding one host's tool slugs.
    sequence for pixel-level validation.
 8. Verify first/middle/last frames, frame count, transform ownership, OCIO status,
    and media metadata before reporting success.
+
+Call `lookdev_turntable__validate_stage` with the measured scene/render facts as
+the final host-neutral gate. A failed gate is a validation result, not a transport
+error; fix the reported contract item and call it again.
 
 ## Honest boundaries
 
