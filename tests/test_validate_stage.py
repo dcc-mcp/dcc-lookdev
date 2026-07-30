@@ -1,29 +1,30 @@
 import importlib.util
 from pathlib import Path
 
-SCRIPT = (
-    Path(__file__).parents[1]
-    / "skill"
-    / "lookdev-turntable"
-    / "scripts"
-    / "validate_stage.py"
-)
+SCRIPTS = Path(__file__).parents[1] / "skill" / "lookdev-turntable" / "scripts"
 
 
-def _load():
-    spec = importlib.util.spec_from_file_location("validate_stage", SCRIPT)
+def _load(monkeypatch, name):
+    monkeypatch.syspath_prepend(str(SCRIPTS))
+    spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
-def _standard():
+def _standard(take_mode):
+    lighting_turntable = take_mode == "lighting_turntable"
     return {
+        "take_mode": take_mode,
         "visible_subjects": 1,
-        "subject_transform_tracks": 1,
+        "subject_transform_tracks": 0 if lighting_turntable else 1,
+        "lighting_transform_tracks": 1 if lighting_turntable else 0,
         "reference_transform_tracks": 0,
         "environment_transform_tracks": 0,
         "camera_transform_tracks": 0,
+        "reference_camera_space": True,
+        "reference_anchor": "lower-left",
+        "chart_plane_view_axis_degrees": 90.0,
         "subject_width_fraction": 0.62,
         "reference_width_fraction": 0.10,
         "clearance_width_fraction": 0.09,
@@ -36,16 +37,31 @@ def _standard():
     }
 
 
-def test_validate_stage_passes_standard_and_reports_clearance_failure():
-    module = _load()
-    result = module.validate_stage(**_standard())
-    assert result["context"]["passed"] is True
+def test_preset_and_both_turntable_takes_pass(monkeypatch):
+    preset_module = _load(monkeypatch, "preset")
+    assert preset_module.main is preset_module.get_preset
+    preset = preset_module.main()["context"]["preset"]
+    assert preset["id"] == "camera-facing-lower-left-dual-turntable"
 
-    too_close = _standard()
-    too_close["clearance_width_fraction"] = 0.04
-    result = module.validate_stage(**too_close)
+    validate_module = _load(monkeypatch, "validate_stage")
+    assert validate_module.main is validate_module.validate_stage
+    validate = validate_module.main
+    assert validate(**_standard("subject_turntable"))["context"]["passed"] is True
+    assert validate(**_standard("lighting_turntable"))["context"]["passed"] is True
+
+
+def test_camera_facing_and_transform_ownership_fail_closed(monkeypatch):
+    validate = _load(monkeypatch, "validate_stage").validate_stage
+    wrong = _standard("subject_turntable")
+    wrong["chart_plane_view_axis_degrees"] = 75
+    wrong["lighting_transform_tracks"] = 1
+    result = validate(**wrong)
+
     assert result["context"]["passed"] is False
     assert (
-        "clearance_width_fraction must be at least 0.08"
+        "chart_plane_view_axis_degrees must be 90 ± 1" in result["context"]["failures"]
+    )
+    assert (
+        "lighting_transform_tracks must equal 0 for subject_turntable"
         in result["context"]["failures"]
     )

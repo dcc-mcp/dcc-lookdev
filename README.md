@@ -2,10 +2,10 @@
 
 Cross-DCC workflow skills for repeatable PBR presentation and review.
 
-The first package, `lookdev-turntable`, builds a fixed calibration stage around
-one rotating subject: visible HDRI environment, measured ColorChecker, 18%
-gray sphere, chrome sphere, fixed camera/exposure, and a verified turntable
-render.
+The first package, `lookdev-turntable`, builds a fixed calibration stage with a
+camera-facing lower-left reference group, visible HDRI environment, measured
+ColorChecker, 18% gray sphere, chrome sphere, and two verified takes: rotating
+subject under fixed lighting, then fixed subject under rotating lighting.
 
 The package contains workflow contracts only. It reuses typed tools supplied by
 the active DCC adapter and does not bundle third-party charts, HDRIs, or models.
