@@ -42,6 +42,14 @@ def test_preset_and_both_turntable_takes_pass(monkeypatch):
     assert preset_module.main is preset_module.get_preset
     preset = preset_module.main()["context"]["preset"]
     assert preset["id"] == "camera-facing-lower-left-dual-turntable"
+    kit = preset_module.main()["context"]["reference_kit"]
+    assert [sphere["id"] for sphere in kit["spheres"]] == [
+        "gray_18",
+        "diffuse_white_80",
+        "chrome_mirror",
+    ]
+    assert len(kit["charts"][0]["swatches_srgb8"]) == 24
+    assert len(kit["hdri_presets"]) == 3
 
     validate_module = _load(monkeypatch, "validate_stage")
     assert validate_module.main is validate_module.validate_stage

@@ -24,9 +24,11 @@ tools:
           type: string
         context:
           type: object
-          required: [preset]
+          required: [preset, reference_kit]
           properties:
             preset:
+              type: object
+            reference_kit:
               type: object
 
   - name: validate_stage

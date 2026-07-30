@@ -61,7 +61,9 @@ adapter without hard-coding one host's tool slugs.
    source URLs, licenses, and hashes. Never bundle an unlicensed chart or HDRI.
 3. Build the five roots above. Parent only the subject to `SubjectRoot`.
 4. Apply the built-in `camera-facing-lower-left-dual-turntable` preset through
-   `lookdev_turntable__get_preset`.
+   `lookdev_turntable__get_preset`. Its `reference_kit` includes procedural
+   three-sphere materials, a license-safe digital chart, an external measured
+   chart descriptor, and three CC0 HDRI download descriptors.
 5. Author two separate 12-second, 30 fps takes: fixed lighting with `SubjectRoot`
    rotating linearly 0 to 360 degrees, then fixed subject with `LightingRoot`
    rotating linearly 0 to 360 degrees.

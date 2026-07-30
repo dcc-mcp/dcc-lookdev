@@ -7,6 +7,10 @@ camera-facing lower-left reference group, visible HDRI environment, measured
 ColorChecker, 18% gray sphere, chrome sphere, and two verified takes: rotating
 subject under fixed lighting, then fixed subject under rotating lighting.
 
+The built-in reference kit also describes an 18% gray sphere, 80% diffuse-white
+sphere, chrome sphere, a license-safe digital chart, and three CC0 HDRI presets.
+Large HDR files are downloaded on demand rather than committed to this repository.
+
 The package contains workflow contracts only. It reuses typed tools supplied by
 the active DCC adapter and does not bundle third-party charts, HDRIs, or models.
 

@@ -18,6 +18,11 @@ asset, camera, and focal-length dependent.
 
 ## Reference materials
 
+`assets/reference-kit.json` is the portable source of truth for the three-sphere
+materials, technical chart, measured-chart provenance, and common HDRI presets.
+Create host geometry and materials from these values; do not copy host scene files
+between adapters.
+
 ### 18% gray sphere
 
 - Base color: linear RGB `(0.18, 0.18, 0.18)`.
@@ -42,6 +47,9 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 - Material: non-emissive, metallic `0`, roughness `0.65`.
 - Keep chart geometry flat and front-facing. Validate row/column orientation before
   judging color.
+- Use the bundled MIT-0 digital chart only as an unlit technical reference. It is
+  not a measured physical ColorChecker. For lit evaluation, supply or generate the
+  external measured chart named by the reference kit and preserve its provenance.
 
 ## Color and texture intent
 

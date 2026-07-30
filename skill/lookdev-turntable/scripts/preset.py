@@ -2,7 +2,16 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from dcc_mcp_core.skill import skill_entry, skill_success
+
+REFERENCE_KIT = json.loads(
+    (Path(__file__).parents[1] / "assets" / "reference-kit.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 STANDARD_PRESET = {
     "id": "camera-facing-lower-left-dual-turntable",
@@ -41,6 +50,7 @@ def get_preset(**kwargs) -> dict:
     return skill_success(
         "Returned standard LookDev preset",
         preset=STANDARD_PRESET,
+        reference_kit=REFERENCE_KIT,
     )
 
 
