@@ -14,7 +14,7 @@ REFERENCE_KIT = json.loads(
 )
 
 STANDARD_PRESET = {
-    "id": "camera-facing-lower-left-dual-turntable",
+    "id": "camera-facing-lower-left-combined-turntable",
     "layout": {
         "aspect_ratio": "16:9",
         "subject_width_fraction": {"min": 0.55, "max": 0.70},
@@ -26,12 +26,18 @@ STANDARD_PRESET = {
         "chart_plane_view_axis_degrees": 90.0,
         "chart_plane_view_axis_tolerance_degrees": 1.0,
     },
-    "takes": {
-        "subject_turntable": {
+    "timeline": {
+        "material_inspection": {
+            "start_output_index": 0,
+            "end_output_index": 179,
+            "frame_count": 180,
             "rotation_owner": "SubjectRoot",
             "fixed_owner": "LightingRoot",
         },
-        "lighting_turntable": {
+        "lighting_inspection": {
+            "start_output_index": 180,
+            "end_output_index": 359,
+            "frame_count": 180,
             "rotation_owner": "LightingRoot",
             "fixed_owner": "SubjectRoot",
         },
@@ -46,7 +52,7 @@ STANDARD_PRESET = {
 
 @skill_entry
 def get_preset(**kwargs) -> dict:
-    """Return the standard camera-facing dual-turntable preset."""
+    """Return the standard camera-facing combined-turntable preset."""
     return skill_success(
         "Returned standard LookDev preset",
         preset=STANDARD_PRESET,

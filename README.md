@@ -4,8 +4,8 @@ Cross-DCC workflow skills for repeatable PBR presentation and review.
 
 The first package, `lookdev-turntable`, builds a fixed calibration stage with a
 camera-facing lower-left reference group, visible HDRI environment, measured
-ColorChecker, 18% gray sphere, chrome sphere, and two verified takes: rotating
-subject under fixed lighting, then fixed subject under rotating lighting.
+ColorChecker, three reference spheres, and one verified 12-second sequence:
+rotating subject under fixed lighting, then fixed subject under rotating lighting.
 
 The built-in reference kit also describes an 18% gray sphere, 80% diffuse-white
 sphere, chrome sphere, a license-safe digital chart, and three CC0 HDRI presets.
