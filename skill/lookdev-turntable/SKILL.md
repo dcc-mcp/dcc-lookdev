@@ -2,20 +2,20 @@
 name: lookdev-turntable
 description: >-
   Build and verify a standardized PBR LookDev stage with one centered subject,
-  a camera-facing lower-left ColorChecker and gray/chrome spheres, a visible HDRI,
-  fixed camera/exposure, and separate subject-turntable and lighting-turntable
-  takes. Use for repeatable material review across supported DCC hosts.
+  a camera-facing lower-left ColorChecker and three reference spheres, a visible HDRI,
+  fixed camera/exposure, and one combined subject-then-lighting turntable.
+  Use for repeatable material review across supported DCC hosts.
 license: MIT-0
 compatibility: "dcc-mcp-core 0.19+, typed scene/material/camera/animation/render tools"
 allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.2.0"
+    version: "0.3.0"
     layer: domain
     stage: presentation
     tags: [lookdev, pbr, turntable, hdri, color-management, render]
-    search-hint: "standard PBR lookdev stage, camera-facing lower-left ColorChecker, 18 percent gray sphere, chrome sphere, HDRI, subject turntable, lighting turntable"
+    search-hint: "standard PBR lookdev stage, camera-facing lower-left ColorChecker, three spheres, HDRI, combined subject then lighting turntable"
     tools: tools.yaml
     references:
       - "references/*.md"
@@ -36,12 +36,12 @@ it does not author the asset, invent chart values, or replace host-owned typed t
 
 ## Stage contract
 
-- `SubjectRoot`: centered on the turntable pivot; the only animated transform in
-  the subject-turntable take and fixed in the lighting-turntable take.
-- `ReferenceRoot`: camera-space lower-left ColorChecker, gray sphere, and chrome
-  sphere; never animated and always front-facing to the camera.
-- `LightingRoot`: the only lighting transform animated in the lighting-turntable
-  take; fixed in the subject-turntable take.
+- `SubjectRoot`: centered on the turntable pivot; rotates only during the first
+  half of the sequence and remains fixed during the second half.
+- `ReferenceRoot`: camera-space lower-left ColorChecker, 18% gray, 80% diffuse,
+  and chrome spheres; never animated and always front-facing to the camera.
+- `LightingRoot`: fixed during the first half and the only lighting transform
+  animated during the second half.
 - `EnvironmentRoot`: visible HDRI backdrop and environment lighting; fixed rotation,
   intensity, and exposure unless its lighting-only transform is owned by
   `LightingRoot`. Keep the visible backdrop fixed when the host can decouple it.
@@ -60,18 +60,20 @@ adapter without hard-coding one host's tool slugs.
 2. Create or reuse a license-safe HDRI and a measured ColorChecker source. Record
    source URLs, licenses, and hashes. Never bundle an unlicensed chart or HDRI.
 3. Build the five roots above. Parent only the subject to `SubjectRoot`.
-4. Apply the built-in `camera-facing-lower-left-dual-turntable` preset through
+4. Apply the built-in `camera-facing-lower-left-combined-turntable` preset through
    `lookdev_turntable__get_preset`. Its `reference_kit` includes procedural
    three-sphere materials, a license-safe digital chart, an external measured
    chart descriptor, and three CC0 HDRI download descriptors.
-5. Author two separate 12-second, 30 fps takes: fixed lighting with `SubjectRoot`
-   rotating linearly 0 to 360 degrees, then fixed subject with `LightingRoot`
-   rotating linearly 0 to 360 degrees.
-6. Render exactly three preview frames per take. Reject overlap, clipping, duplicate
-   subjects/reflections, automatic exposure, invalid color transforms, or moving
-   reference objects.
-7. Render 360 final frames per take, encode H.264/BT.709 for review, and retain the
-   image sequences for pixel-level validation.
+5. Author one 12-second, 30 fps sequence. The first 180 output frames inspect
+   materials with fixed lighting and `SubjectRoot` rotating linearly 0 to 360
+   degrees. The final 180 inspect lighting with the subject fixed and
+   `LightingRoot` rotating linearly 0 to 360 degrees.
+6. Render preview frames from both halves. Reject overlap, clipping, duplicate
+   subjects/reflections, visible light helpers, fallback materials, automatic
+   exposure, invalid color transforms, or moving reference objects.
+7. Render all 360 frames natively in the DCC, encode one H.264/BT.709 review video,
+   and retain the image sequence for pixel-level validation. Do not synthesize
+   missing frames with optical flow.
 8. Verify first/middle/last frames, frame count, transform ownership, OCIO status,
    and media metadata before reporting success.
 

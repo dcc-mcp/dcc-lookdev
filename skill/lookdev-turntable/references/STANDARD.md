@@ -61,25 +61,31 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 
 ## Animation and output
 
-- Subject-turntable take: `SubjectRoot` rotates on one axis, `0 -> 360` degrees
-  with linear interpolation; `LightingRoot` is fixed.
-- Lighting-turntable take: `LightingRoot` rotates on one axis, `0 -> 360` degrees
-  with linear interpolation; `SubjectRoot` is fixed.
-- Each take is 12 seconds at 30 fps and produces 360 output frames.
-- Fixed in both takes: reference group, camera, exposure, visible backdrop, ground,
-  and color transform.
+- One combined sequence is 12 seconds at 30 fps and produces 360 output frames.
+- First 180 output frames, material inspection: `SubjectRoot` rotates on one axis,
+  `0 -> 360` degrees with linear interpolation; `LightingRoot` is fixed.
+- Final 180 output frames, lighting inspection: `LightingRoot` rotates on one axis,
+  `0 -> 360` degrees with linear interpolation; `SubjectRoot` is fixed at its
+  starting orientation.
+- Fixed for the complete sequence: reference group, camera, exposure, ground, and
+  color transform.
 - `LightingRoot` may own physical lights or the lighting-only HDRI orientation.
   Keep the visible HDRI backdrop separate and fixed when the host permits it.
+- Light helpers and emitter geometry must not be camera-visible.
+- Every output frame must come from the DCC renderer. Optical-flow or other
+  synthetic frame interpolation is not accepted as render evidence.
 - Final media: 1920x1080 minimum, H.264 High, yuv420p, 30 fps, BT.709 primaries,
   transfer, and matrix.
 
 ## Acceptance gates
 
-1. Scene contains one visible subject.
-2. Subject take has one animated subject root and no animated lighting root.
-3. Lighting take has one animated lighting root and no animated subject root.
-4. Reference group, camera, and visible environment have no animation tracks.
-5. Three-frame previews pass layout, chart direction, exposure, and OCIO checks.
-6. Each final image sequence contains exactly 360 frames.
+1. Scene contains one visible subject with valid material assignments.
+2. The combined sequence has one subject track and one lighting track.
+3. The first 180 frames rotate only the subject; the final 180 rotate only lighting.
+4. Reference group and camera have no animation tracks. A visible HDRI may reuse
+   the one lighting track when the host cannot decouple lighting from the backdrop.
+5. Preview frames from both halves pass layout, chart direction, exposure, OCIO,
+   light-helper visibility, and material checks.
+6. The final image sequence contains exactly 360 native rendered frames.
 7. First, middle, and last frames preserve fixed reference-pixel locations.
-8. Each video reports 1920x1080 or greater, 30 fps, 12 seconds, and BT.709 tags.
+8. The single video reports 1920x1080 or greater, 30 fps, 12 seconds, and BT.709 tags.

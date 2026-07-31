@@ -10,7 +10,6 @@ from preset import STANDARD_PRESET
 
 @skill_entry
 def validate_stage(
-    take_mode: str,
     visible_subjects: int,
     subject_transform_tracks: int,
     lighting_transform_tracks: int,
@@ -24,6 +23,17 @@ def validate_stage(
     reference_width_fraction: float,
     clearance_width_fraction: float,
     gray_linear_reflectance: float,
+    material_phase_frame_count: int,
+    lighting_phase_frame_count: int,
+    material_phase_subject_rotation_degrees: float,
+    material_phase_lighting_rotation_degrees: float,
+    lighting_phase_subject_rotation_degrees: float,
+    lighting_phase_lighting_rotation_degrees: float,
+    linear_interpolation: bool,
+    subject_material_valid: bool,
+    visible_light_geometry: bool,
+    native_rendered_frame_count: int,
+    synthetic_interpolation_used: bool,
     duration_seconds: float,
     fps: float,
     output_frame_count: int,
@@ -32,18 +42,16 @@ def validate_stage(
     **kwargs,
 ) -> dict:
     layout = STANDARD_PRESET["layout"]
-    take_modes = STANDARD_PRESET["takes"]
+    timeline = STANDARD_PRESET["timeline"]
     failures = []
     checks = (
-        (
-            take_mode in take_modes,
-            "take_mode must be subject_turntable or lighting_turntable",
-        ),
         (visible_subjects == 1, "visible_subjects must equal 1"),
+        (subject_transform_tracks == 1, "subject_transform_tracks must equal 1"),
+        (lighting_transform_tracks == 1, "lighting_transform_tracks must equal 1"),
         (reference_transform_tracks == 0, "reference_transform_tracks must equal 0"),
         (
-            environment_transform_tracks == 0,
-            "environment_transform_tracks must equal 0",
+            environment_transform_tracks in (0, 1),
+            "environment_transform_tracks must be 0 or the one lighting-owned HDRI track",
         ),
         (camera_transform_tracks == 0, "camera_transform_tracks must equal 0"),
         (reference_camera_space, "reference_camera_space must be true"),
@@ -82,6 +90,43 @@ def validate_stage(
             "gray_linear_reflectance must be 0.18 ± 0.005",
         ),
         (
+            material_phase_frame_count
+            == timeline["material_inspection"]["frame_count"],
+            "material_phase_frame_count must equal 180",
+        ),
+        (
+            lighting_phase_frame_count
+            == timeline["lighting_inspection"]["frame_count"],
+            "lighting_phase_frame_count must equal 180",
+        ),
+        (
+            isclose(material_phase_subject_rotation_degrees, 360.0, abs_tol=0.01),
+            "material phase subject rotation must equal 360 degrees",
+        ),
+        (
+            isclose(material_phase_lighting_rotation_degrees, 0.0, abs_tol=0.01),
+            "material phase lighting rotation must equal 0 degrees",
+        ),
+        (
+            isclose(lighting_phase_subject_rotation_degrees, 0.0, abs_tol=0.01),
+            "lighting phase subject rotation must equal 0 degrees",
+        ),
+        (
+            isclose(lighting_phase_lighting_rotation_degrees, 360.0, abs_tol=0.01),
+            "lighting phase lighting rotation must equal 360 degrees",
+        ),
+        (linear_interpolation, "linear_interpolation must be true"),
+        (subject_material_valid, "subject_material_valid must be true"),
+        (not visible_light_geometry, "visible_light_geometry must be false"),
+        (
+            native_rendered_frame_count == STANDARD_PRESET["output_frame_count"],
+            "native_rendered_frame_count must equal 360",
+        ),
+        (
+            not synthetic_interpolation_used,
+            "synthetic_interpolation_used must be false",
+        ),
+        (
             isclose(
                 duration_seconds, STANDARD_PRESET["duration_seconds"], abs_tol=0.01
             ),
@@ -97,25 +142,12 @@ def validate_stage(
     )
     failures.extend(message for passed, message in checks if not passed)
 
-    if take_mode in take_modes:
-        subject_tracks = 1 if take_mode == "subject_turntable" else 0
-        lighting_tracks = 1 if take_mode == "lighting_turntable" else 0
-        if subject_transform_tracks != subject_tracks:
-            failures.append(
-                f"subject_transform_tracks must equal {subject_tracks} for {take_mode}"
-            )
-        if lighting_transform_tracks != lighting_tracks:
-            failures.append(
-                f"lighting_transform_tracks must equal {lighting_tracks} for {take_mode}"
-            )
-
     passed = not failures
     return skill_success(
-        "LookDev take passed"
+        "LookDev sequence passed"
         if passed
-        else f"LookDev take failed {len(failures)} check(s)",
+        else f"LookDev sequence failed {len(failures)} check(s)",
         passed=passed,
-        take_mode=take_mode,
         failures=failures,
     )
 

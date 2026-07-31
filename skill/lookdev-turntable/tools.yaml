@@ -1,6 +1,6 @@
 tools:
   - name: get_preset
-    description: Return the built-in camera-facing lower-left dual-turntable preset.
+    description: Return the built-in camera-facing lower-left combined-turntable preset.
     source_file: scripts/preset.py
     execution: sync
     affinity: any
@@ -32,7 +32,7 @@ tools:
               type: object
 
   - name: validate_stage
-    description: Validate one measured take against the standard dual-turntable LookDev preset.
+    description: Validate one measured combined material-and-lighting LookDev sequence.
     source_file: scripts/validate_stage.py
     execution: sync
     affinity: any
@@ -46,7 +46,6 @@ tools:
     input_schema:
       type: object
       required:
-        - take_mode
         - visible_subjects
         - subject_transform_tracks
         - lighting_transform_tracks
@@ -60,15 +59,23 @@ tools:
         - reference_width_fraction
         - clearance_width_fraction
         - gray_linear_reflectance
+        - material_phase_frame_count
+        - lighting_phase_frame_count
+        - material_phase_subject_rotation_degrees
+        - material_phase_lighting_rotation_degrees
+        - lighting_phase_subject_rotation_degrees
+        - lighting_phase_lighting_rotation_degrees
+        - linear_interpolation
+        - subject_material_valid
+        - visible_light_geometry
+        - native_rendered_frame_count
+        - synthetic_interpolation_used
         - duration_seconds
         - fps
         - output_frame_count
         - auto_exposure_enabled
         - color_transform_valid
       properties:
-        take_mode:
-          type: string
-          enum: [subject_turntable, lighting_turntable]
         visible_subjects:
           type: integer
           minimum: 0
@@ -86,6 +93,8 @@ tools:
         environment_transform_tracks:
           type: integer
           minimum: 0
+          maximum: 1
+          description: Zero when the visible backdrop is fixed; one when it reuses the sole lighting-owned HDRI track.
           description: Transform tracks on the visible environment backdrop.
         camera_transform_tracks:
           type: integer
@@ -117,6 +126,41 @@ tools:
           type: number
           minimum: 0
           maximum: 1
+        material_phase_frame_count:
+          type: integer
+          minimum: 1
+          description: Native output frames in the fixed-lighting subject-turntable phase.
+        lighting_phase_frame_count:
+          type: integer
+          minimum: 1
+          description: Native output frames in the fixed-subject lighting-turntable phase.
+        material_phase_subject_rotation_degrees:
+          type: number
+          description: Total SubjectRoot rotation during the material-inspection phase.
+        material_phase_lighting_rotation_degrees:
+          type: number
+          description: Total LightingRoot rotation during the material-inspection phase.
+        lighting_phase_subject_rotation_degrees:
+          type: number
+          description: Total SubjectRoot rotation during the lighting-inspection phase.
+        lighting_phase_lighting_rotation_degrees:
+          type: number
+          description: Total LightingRoot rotation during the lighting-inspection phase.
+        linear_interpolation:
+          type: boolean
+        subject_material_valid:
+          type: boolean
+          description: Expected material slots are assigned with no fallback/default material.
+        visible_light_geometry:
+          type: boolean
+          description: Whether any helper or emitter geometry is visible in the camera.
+        native_rendered_frame_count:
+          type: integer
+          minimum: 1
+          description: Frames rendered by the DCC renderer before video encoding.
+        synthetic_interpolation_used:
+          type: boolean
+          description: Whether optical-flow or other synthetic frame generation was used.
         duration_seconds:
           type: number
           exclusiveMinimum: 0
@@ -140,46 +184,22 @@ tools:
           type: string
         context:
           type: object
-          required: [passed, take_mode, failures]
+          required: [passed, failures]
           properties:
             passed:
               type: boolean
-            take_mode:
-              type: string
             failures:
               type: array
               items:
                 type: string
     call_examples:
-      - note: Validate the fixed-lighting subject turntable.
+      - note: Validate the combined material and lighting inspection sequence.
         arguments:
-          take_mode: subject_turntable
           visible_subjects: 1
           subject_transform_tracks: 1
-          lighting_transform_tracks: 0
-          reference_transform_tracks: 0
-          environment_transform_tracks: 0
-          camera_transform_tracks: 0
-          reference_camera_space: true
-          reference_anchor: lower-left
-          chart_plane_view_axis_degrees: 90
-          subject_width_fraction: 0.62
-          reference_width_fraction: 0.10
-          clearance_width_fraction: 0.09
-          gray_linear_reflectance: 0.18
-          duration_seconds: 12
-          fps: 30
-          output_frame_count: 360
-          auto_exposure_enabled: false
-          color_transform_valid: true
-      - note: Validate the fixed-subject lighting turntable.
-        arguments:
-          take_mode: lighting_turntable
-          visible_subjects: 1
-          subject_transform_tracks: 0
           lighting_transform_tracks: 1
           reference_transform_tracks: 0
-          environment_transform_tracks: 0
+          environment_transform_tracks: 1
           camera_transform_tracks: 0
           reference_camera_space: true
           reference_anchor: lower-left
@@ -188,6 +208,17 @@ tools:
           reference_width_fraction: 0.10
           clearance_width_fraction: 0.09
           gray_linear_reflectance: 0.18
+          material_phase_frame_count: 180
+          lighting_phase_frame_count: 180
+          material_phase_subject_rotation_degrees: 360
+          material_phase_lighting_rotation_degrees: 0
+          lighting_phase_subject_rotation_degrees: 0
+          lighting_phase_lighting_rotation_degrees: 360
+          linear_interpolation: true
+          subject_material_valid: true
+          visible_light_geometry: false
+          native_rendered_frame_count: 360
+          synthetic_interpolation_used: false
           duration_seconds: 12
           fps: 30
           output_frame_count: 360
