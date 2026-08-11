@@ -94,8 +94,7 @@ tools:
           type: integer
           minimum: 0
           maximum: 1
-          description: Zero when the visible backdrop is fixed; one when it reuses the sole lighting-owned HDRI track.
-          description: Transform tracks on the visible environment backdrop.
+          description: Transform tracks on the visible environment backdrop; use zero when fixed or one for the sole lighting-owned HDRI track.
         camera_transform_tracks:
           type: integer
           minimum: 0

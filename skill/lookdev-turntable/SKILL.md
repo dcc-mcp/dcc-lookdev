@@ -11,7 +11,7 @@ allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.3.0"
+    version: "0.3.1"
     layer: domain
     stage: presentation
     tags: [lookdev, pbr, turntable, hdri, color-management, render]
