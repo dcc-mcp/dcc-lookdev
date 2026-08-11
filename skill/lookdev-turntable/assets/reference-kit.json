@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "id": "dcc-lookdev-reference-kit",
   "license": "MIT-0 for original templates; external assets retain their declared licenses",
   "reference_group": {
@@ -33,9 +33,9 @@
       "id": "chrome_mirror",
       "label": "Chrome",
       "material": {
-        "base_color_linear": [0.9, 0.9, 0.9],
+        "base_color_linear": [0.55, 0.56, 0.55],
         "metallic": 1.0,
-        "roughness": 0.0,
+        "roughness": 0.03,
         "emissive": false
       }
     }
@@ -100,6 +100,134 @@
       "bytes": 5345625,
       "hash": {"algorithm": "md5", "value": "e764c66f871ab0987f3fac422edc841d"},
       "color_intent": "scene-linear HDR"
+    },
+    {
+      "id": "cloudy_vondelpark",
+      "label": "Soft overcast park daylight",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/cloudy_vondelpark",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/cloudy_vondelpark_2k.hdr",
+      "bytes": 7209334,
+      "hash": {"algorithm": "md5", "value": "c9e413656da44aae9da6b10fa894bd4f"},
+      "color_intent": "scene-linear HDR",
+      "contains_sun": false
+    },
+    {
+      "id": "studio_garden",
+      "label": "Clear garden daylight",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/studio_garden",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/studio_garden_2k.hdr",
+      "bytes": 7260196,
+      "hash": {"algorithm": "md5", "value": "c383232b00efffea4e3642cdd7348bee"},
+      "color_intent": "scene-linear HDR",
+      "contains_sun": true
+    },
+    {
+      "id": "soliltude",
+      "label": "Soft overcast field daylight",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/soliltude",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/soliltude_2k.hdr",
+      "bytes": 6683879,
+      "hash": {"algorithm": "md5", "value": "091b9f31ec7e158e720c89b9c2d03d68"},
+      "color_intent": "scene-linear HDR",
+      "contains_sun": false
+    },
+    {
+      "id": "kloofendal_overcast",
+      "label": "Neutral overcast grassland",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/kloofendal_overcast",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloofendal_overcast_2k.hdr",
+      "bytes": 6286056,
+      "hash": {"algorithm": "md5", "value": "69d4466c74c4d62704db12a6a20dd434"},
+      "color_intent": "scene-linear HDR",
+      "contains_sun": false
+    },
+    {
+      "id": "kloppenheim_01_puresky",
+      "label": "Low-contrast overcast pure sky",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/kloppenheim_01_puresky",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloppenheim_01_puresky_2k.hdr",
+      "bytes": 3187954,
+      "hash": {"algorithm": "md5", "value": "6b67f5415b20db8649d68e238a376a8c"},
+      "color_intent": "scene-linear HDR",
+      "contains_sun": false
+    },
+    {
+      "id": "cloud_layers",
+      "label": "High-contrast partly cloudy daylight",
+      "provider": "Poly Haven",
+      "license": "CC0",
+      "source_url": "https://polyhaven.com/a/cloud_layers",
+      "download_url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/cloud_layers_2k.hdr",
+      "bytes": 6985914,
+      "hash": {"algorithm": "md5", "value": "4f0d6e3d46dd31e8bff222ba3b9c9eed"},
+      "color_intent": "scene-linear HDR",
+      "contains_sun": true
+    }
+  ],
+  "asset_type_presets": [
+    {
+      "asset_type": "insect_macro",
+      "label": "Insect / macro",
+      "hdri_id": "cloudy_vondelpark",
+      "rotation_degrees": 215.0,
+      "exposure_ev": -0.35,
+      "white_balance_kelvin": 5500,
+      "ground_shadow": {"enabled": true, "contact_shadow": true, "albedo_linear": [0.18, 0.18, 0.18], "roughness": 0.82}
+    },
+    {
+      "asset_type": "character_creature",
+      "label": "Character / creature",
+      "hdri_id": "soliltude",
+      "rotation_degrees": 120.0,
+      "exposure_ev": 0.0,
+      "white_balance_kelvin": 5600,
+      "ground_shadow": {"enabled": true, "contact_shadow": true, "albedo_linear": [0.18, 0.18, 0.18], "roughness": 0.78}
+    },
+    {
+      "asset_type": "hard_surface_product",
+      "label": "Hard surface / product",
+      "hdri_id": "studio_garden",
+      "rotation_degrees": 35.0,
+      "exposure_ev": -0.8,
+      "white_balance_kelvin": 5150,
+      "ground_shadow": {"enabled": true, "contact_shadow": true, "albedo_linear": [0.18, 0.18, 0.18], "roughness": 0.7}
+    },
+    {
+      "asset_type": "glass_translucent",
+      "label": "Glass / translucent",
+      "hdri_id": "kloppenheim_01_puresky",
+      "rotation_degrees": 310.0,
+      "exposure_ev": -0.25,
+      "white_balance_kelvin": 6000,
+      "ground_shadow": {"enabled": true, "contact_shadow": true, "albedo_linear": [0.12, 0.12, 0.12], "roughness": 0.72}
+    },
+    {
+      "asset_type": "vegetation",
+      "label": "Vegetation",
+      "hdri_id": "kloofendal_overcast",
+      "rotation_degrees": 145.0,
+      "exposure_ev": 0.25,
+      "white_balance_kelvin": 5300,
+      "ground_shadow": {"enabled": true, "contact_shadow": true, "albedo_linear": [0.16, 0.16, 0.16], "roughness": 0.88}
+    },
+    {
+      "asset_type": "environment",
+      "label": "Environment asset",
+      "hdri_id": "cloud_layers",
+      "rotation_degrees": 20.0,
+      "exposure_ev": -1.25,
+      "white_balance_kelvin": 5600,
+      "ground_shadow": {"enabled": false, "contact_shadow": false, "albedo_linear": [0.18, 0.18, 0.18], "roughness": 0.8}
     }
   ]
 }

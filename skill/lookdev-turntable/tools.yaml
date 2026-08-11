@@ -31,6 +31,96 @@ tools:
             reference_kit:
               type: object
 
+  - name: recommend_hdr_preset
+    description: Recommend a neutral PBR HDR profile for TT LookDev, with explicit overrides.
+    source_file: scripts/preset.py
+    execution: sync
+    affinity: any
+    enforce_thread_affinity: false
+    timeout_hint_secs: 5
+    read_only: true
+    destructive: false
+    idempotent: true
+    annotations:
+      read_only_hint: true
+    input_schema:
+      type: object
+      required: [asset_type]
+      properties:
+        asset_type:
+          type: string
+          enum: [insect_macro, character_creature, hard_surface_product, glass_translucent, vegetation, environment]
+        hdri_id:
+          type: string
+          enum: [studio_small_09, photo_studio_01, aristea_wreck_puresky, cloudy_vondelpark, studio_garden, soliltude, kloofendal_overcast, kloppenheim_01_puresky, cloud_layers]
+        rotation_degrees:
+          type: number
+          minimum: 0
+          maximum: 360
+        exposure_ev:
+          type: number
+          minimum: -10
+          maximum: 10
+        white_balance_kelvin:
+          type: integer
+          minimum: 2000
+          maximum: 12000
+        ground_shadow_enabled:
+          type: boolean
+        ground_albedo_linear:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            type: number
+            minimum: 0
+            maximum: 1
+        ground_roughness:
+          type: number
+          minimum: 0
+          maximum: 1
+        gray_linear_reflectance:
+          type: number
+          minimum: 0
+          maximum: 1
+        white_linear_reflectance:
+          type: number
+          minimum: 0
+          maximum: 1
+        chrome_base_color_linear:
+          type: number
+          minimum: 0
+          maximum: 1
+        chrome_roughness:
+          type: number
+          minimum: 0
+          maximum: 1
+    output_schema:
+      type: object
+      required: [success, message, context]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        context:
+          type: object
+          required: [profile, reference_kit]
+          properties:
+            profile:
+              type: object
+            reference_kit:
+              type: object
+    call_examples:
+      - note: TT preset for a macro insect under neutral outdoor daylight.
+        arguments:
+          asset_type: insect_macro
+      - note: Explicitly override the HDR orientation and exposure.
+        arguments:
+          asset_type: hard_surface_product
+          rotation_degrees: 80
+          exposure_ev: -0.5
+
   - name: validate_stage
     description: Validate one measured combined material-and-lighting LookDev sequence.
     source_file: scripts/validate_stage.py
@@ -173,6 +263,20 @@ tools:
           type: boolean
         color_transform_valid:
           type: boolean
+        pbr_validation_mode:
+          type: boolean
+          default: true
+        stylized_tint_enabled:
+          type: boolean
+          default: false
+          description: Must remain false while PBR validation mode is enabled.
+        hdri_contains_sun:
+          type: boolean
+          default: false
+        additional_sun_lights:
+          type: integer
+          minimum: 0
+          default: 0
     output_schema:
       type: object
       required: [success, message, context]
@@ -223,3 +327,7 @@ tools:
           output_frame_count: 360
           auto_exposure_enabled: false
           color_transform_valid: true
+          pbr_validation_mode: true
+          stylized_tint_enabled: false
+          hdri_contains_sun: true
+          additional_sun_lights: 0

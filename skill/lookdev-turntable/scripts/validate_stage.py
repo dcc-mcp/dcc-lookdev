@@ -39,6 +39,10 @@ def validate_stage(
     output_frame_count: int,
     auto_exposure_enabled: bool,
     color_transform_valid: bool,
+    pbr_validation_mode: bool = True,
+    stylized_tint_enabled: bool = False,
+    hdri_contains_sun: bool = False,
+    additional_sun_lights: int = 0,
     **kwargs,
 ) -> dict:
     layout = STANDARD_PRESET["layout"]
@@ -139,6 +143,14 @@ def validate_stage(
         ),
         (not auto_exposure_enabled, "auto_exposure_enabled must be false"),
         (color_transform_valid, "color_transform_valid must be true"),
+        (
+            not (pbr_validation_mode and stylized_tint_enabled),
+            "stylized_tint_enabled must be false in PBR validation mode",
+        ),
+        (
+            not (hdri_contains_sun and additional_sun_lights > 0),
+            "additional_sun_lights must equal 0 when the HDRI contains the sun",
+        ),
     )
     failures.extend(message for passed, message in checks if not passed)
 
