@@ -97,6 +97,27 @@ def test_preset_and_combined_turntable_pass(monkeypatch):
     assert validate(**_standard())["context"]["passed"] is True
 
 
+def test_each_preset_tool_has_a_distinct_legacy_entrypoint(monkeypatch):
+    get_preset_entrypoint = _load(monkeypatch, "get_preset")
+    recommend_entrypoint = _load(monkeypatch, "recommend_hdr_preset")
+
+    assert get_preset_entrypoint.main is get_preset_entrypoint.get_preset
+    assert (
+        recommend_entrypoint.main
+        is recommend_entrypoint.recommend_hdr_preset
+    )
+    assert get_preset_entrypoint.main()["context"]["preset"]["id"] == (
+        "camera-facing-lower-left-combined-turntable"
+    )
+    assert recommend_entrypoint.main(asset_type="insect_macro")["context"][
+        "profile"
+    ]["asset_type"] == "insect_macro"
+
+    tools_yaml = (SKILL_ROOT / "tools.yaml").read_text(encoding="utf-8")
+    assert "source_file: scripts/get_preset.py" in tools_yaml
+    assert "source_file: scripts/recommend_hdr_preset.py" in tools_yaml
+
+
 def test_camera_facing_and_render_integrity_fail_closed(monkeypatch):
     validate = _load(monkeypatch, "validate_stage").validate_stage
     wrong = _standard()

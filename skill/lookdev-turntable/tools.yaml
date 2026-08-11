@@ -1,7 +1,7 @@
 tools:
   - name: get_preset
     description: Return the built-in camera-facing lower-left combined-turntable preset.
-    source_file: scripts/preset.py
+    source_file: scripts/get_preset.py
     execution: sync
     affinity: any
     enforce_thread_affinity: false
@@ -33,7 +33,7 @@ tools:
 
   - name: recommend_hdr_preset
     description: Recommend a neutral PBR HDR profile for TT LookDev, with explicit overrides.
-    source_file: scripts/preset.py
+    source_file: scripts/recommend_hdr_preset.py
     execution: sync
     affinity: any
     enforce_thread_affinity: false
