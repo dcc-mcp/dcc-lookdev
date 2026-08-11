@@ -62,7 +62,34 @@ def test_preset_and_combined_turntable_pass(monkeypatch):
         "chrome_mirror",
     ]
     assert len(kit["charts"][0]["swatches_srgb8"]) == 24
-    assert len(kit["hdri_presets"]) == 3
+    assert len(kit["hdri_presets"]) == 9
+    assert len(kit["asset_type_presets"]) == 6
+
+    for asset_type in (
+        "insect_macro",
+        "character_creature",
+        "hard_surface_product",
+        "glass_translucent",
+        "vegetation",
+        "environment",
+    ):
+        profile = preset_module.recommend_hdr_preset(asset_type=asset_type)["context"][
+            "profile"
+        ]
+        assert profile["asset_type"] == asset_type
+        assert profile["hdri"]["license"] == "CC0"
+        assert profile["color_pipeline"]["working_space"] == "ACEScg"
+        assert profile["color_pipeline"]["auto_exposure_enabled"] is False
+        assert profile["pbr_validation"]["stylized_tint_allowed"] is False
+        assert profile["reference_spheres"]["gray_18"]["material"][
+            "base_color_linear"
+        ] == [0.18, 0.18, 0.18]
+        assert profile["reference_spheres"]["diffuse_white_80"]["material"][
+            "base_color_linear"
+        ] == [0.8, 0.8, 0.8]
+        assert profile["reference_spheres"]["chrome_mirror"]["material"][
+            "metallic"
+        ] == 1.0
 
     validate_module = _load(monkeypatch, "validate_stage")
     assert validate_module.main is validate_module.validate_stage
@@ -86,6 +113,46 @@ def test_camera_facing_and_render_integrity_fail_closed(monkeypatch):
     assert "synthetic_interpolation_used must be false" in result["context"]["failures"]
 
 
+def test_hdr_overrides_and_pbr_validation_fail_closed(monkeypatch):
+    preset = _load(monkeypatch, "preset")
+    profile = preset.recommend_hdr_preset(
+        asset_type="insect_macro",
+        hdri_id="kloofendal_overcast",
+        rotation_degrees=42,
+        exposure_ev=0.5,
+        white_balance_kelvin=5200,
+        ground_shadow_enabled=False,
+        gray_linear_reflectance=0.2,
+        chrome_roughness=0.08,
+    )["context"]["profile"]
+    assert profile["hdri_id"] == "kloofendal_overcast"
+    assert profile["rotation_degrees"] == 42
+    assert profile["exposure_ev"] == 0.5
+    assert profile["white_balance_kelvin"] == 5200
+    assert profile["ground_shadow"]["enabled"] is False
+    assert profile["reference_spheres"]["gray_18"]["material"][
+        "base_color_linear"
+    ] == [0.2, 0.2, 0.2]
+    assert profile["reference_spheres"]["chrome_mirror"]["material"][
+        "roughness"
+    ] == 0.08
+
+    validate = _load(monkeypatch, "validate_stage").validate_stage
+    wrong = _standard()
+    wrong.update(
+        pbr_validation_mode=True,
+        stylized_tint_enabled=True,
+        hdri_contains_sun=True,
+        additional_sun_lights=1,
+    )
+    failures = validate(**wrong)["context"]["failures"]
+    assert "stylized_tint_enabled must be false in PBR validation mode" in failures
+    assert (
+        "additional_sun_lights must equal 0 when the HDRI contains the sun"
+        in failures
+    )
+
+
 def test_tools_yaml_registers_complete_validation_schema():
     from dcc_mcp_core import SkillCatalog, ToolRegistry
 
@@ -100,7 +167,15 @@ def test_tools_yaml_registers_complete_validation_schema():
         schema = json.loads(schema)
 
     properties = schema["properties"]
-    assert len(properties) == 29
+    assert len(properties) == 33
     assert len(schema["required"]) == 29
     assert "lighting_transform_tracks" in properties
     assert "native_rendered_frame_count" in properties
+
+    recommend_schema = tools["lookdev_turntable__recommend_hdr_preset"][
+        "input_schema"
+    ]
+    if isinstance(recommend_schema, str):
+        recommend_schema = json.loads(recommend_schema)
+    assert recommend_schema["required"] == ["asset_type"]
+    assert len(recommend_schema["properties"]["asset_type"]["enum"]) == 6

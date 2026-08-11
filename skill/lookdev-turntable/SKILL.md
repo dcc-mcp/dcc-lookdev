@@ -11,11 +11,11 @@ allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.3.1"
+    version: "0.4.0"
     layer: domain
     stage: presentation
-    tags: [lookdev, pbr, turntable, hdri, color-management, render]
-    search-hint: "standard PBR lookdev stage, camera-facing lower-left ColorChecker, three spheres, HDRI, combined subject then lighting turntable"
+    tags: [lookdev, tt, pbr, turntable, hdri, color-management, render]
+    search-hint: "TT lookdev, standard PBR lookdev stage, asset-type HDR recommendation, camera-facing lower-left ColorChecker, three spheres, combined subject then lighting turntable"
     tools: tools.yaml
     references:
       - "references/*.md"
@@ -63,7 +63,10 @@ adapter without hard-coding one host's tool slugs.
 4. Apply the built-in `camera-facing-lower-left-combined-turntable` preset through
    `lookdev_turntable__get_preset`. Its `reference_kit` includes procedural
    three-sphere materials, a license-safe digital chart, an external measured
-   chart descriptor, and three CC0 HDRI download descriptors.
+   chart descriptor, and nine CC0 HDRI download descriptors.
+   The shorthand intent `TT` should route to this Skill. Call
+   `lookdev_turntable__recommend_hdr_preset` first for an asset-type default and
+   pass explicit overrides only when the shot requires them.
 5. Author one 12-second, 30 fps sequence. The first 180 output frames inspect
    materials with fixed lighting and `SubjectRoot` rotating linearly 0 to 360
    degrees. The final 180 inspect lighting with the subject fixed and
@@ -76,6 +79,12 @@ adapter without hard-coding one host's tool slugs.
    missing frames with optical flow.
 8. Verify first/middle/last frames, frame count, transform ownership, OCIO status,
    and media metadata before reporting success.
+
+The HDR recommender covers insect/macro, character/creature, hard-surface/product,
+glass/translucent, vegetation, and environment assets. Every result includes the
+CC0 HDR descriptor, orientation, manual exposure, white balance, ground/contact
+shadow setup, and calibrated sphere parameters. PBR validation forbids stylized
+light tint and rejects an extra sun when the selected HDRI already contains one.
 
 Call `lookdev_turntable__validate_stage` with the measured scene/render facts as
 the final host-neutral gate. A failed gate is a validation result, not a transport

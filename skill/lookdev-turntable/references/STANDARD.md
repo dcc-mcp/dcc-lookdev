@@ -19,7 +19,8 @@ asset, camera, and focal-length dependent.
 ## Reference materials
 
 `assets/reference-kit.json` is the portable source of truth for the three-sphere
-materials, technical chart, measured-chart provenance, and common HDRI presets.
+materials, technical chart, measured-chart provenance, common HDRI presets, and
+the six asset-type TT recommendations.
 Create host geometry and materials from these values; do not copy host scene files
 between adapters.
 
@@ -35,9 +36,9 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 
 ### Chrome sphere
 
-- Neutral base color.
+- Neutral measured-style chromium base color: linear RGB `(0.55, 0.56, 0.55)`.
 - Metallic: `1`.
-- Roughness: `0`.
+- Roughness: `0.03`.
 - Non-emissive.
 
 ### ColorChecker
@@ -58,6 +59,8 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 - Work scene-linearly. Use one validated OCIO config where the host supports it.
 - Default review output: ACEScg to Rec.709 SDR, encoded once, with BT.709 container
   metadata. Do not apply a second LUT during video encoding.
+- In PBR validation mode, use neutral illumination and disable stylized tint.
+- When the selected HDRI contains a captured sun, do not add a second sun light.
 
 ## Animation and output
 
