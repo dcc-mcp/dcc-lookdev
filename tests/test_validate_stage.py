@@ -1,7 +1,9 @@
 import importlib.util
+import json
 from pathlib import Path
 
 SCRIPTS = Path(__file__).parents[1] / "skill" / "lookdev-turntable" / "scripts"
+SKILL_ROOT = SCRIPTS.parent
 
 
 def _load(monkeypatch, name):
@@ -82,3 +84,23 @@ def test_camera_facing_and_render_integrity_fail_closed(monkeypatch):
     )
     assert "visible_light_geometry must be false" in result["context"]["failures"]
     assert "synthetic_interpolation_used must be false" in result["context"]["failures"]
+
+
+def test_tools_yaml_registers_complete_validation_schema():
+    from dcc_mcp_core import SkillCatalog, ToolRegistry
+
+    registry = ToolRegistry()
+    catalog = SkillCatalog(registry)
+    catalog.discover(extra_paths=[str(SKILL_ROOT.parent)])
+    catalog.load_skill("lookdev-turntable")
+
+    tools = {item["name"]: item for item in registry.list_actions()}
+    schema = tools["lookdev_turntable__validate_stage"]["input_schema"]
+    if isinstance(schema, str):
+        schema = json.loads(schema)
+
+    properties = schema["properties"]
+    assert len(properties) == 29
+    assert len(schema["required"]) == 29
+    assert "lighting_transform_tracks" in properties
+    assert "native_rendered_frame_count" in properties
