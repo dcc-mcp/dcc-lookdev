@@ -11,7 +11,7 @@ allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.4.0"
+    version: "0.5.0"
     layer: domain
     stage: presentation
     tags: [lookdev, tt, pbr, turntable, hdri, color-management, render]
@@ -77,8 +77,11 @@ adapter without hard-coding one host's tool slugs.
 7. Render all 360 frames natively in the DCC, encode one H.264/BT.709 review video,
    and retain the image sequence for pixel-level validation. Do not synthesize
    missing frames with optical flow.
-8. Verify first/middle/last frames, frame count, transform ownership, OCIO status,
-   and media metadata before reporting success.
+8. Verify first/middle/last frames, frame count, transform ownership, the active
+   OCIO config/working space/display/view, one output encoding, rendered linear
+   gray luminance, highlight clipping, texture color intent, and media metadata
+   before reporting success. A caller-supplied `color_transform_valid=true` is
+   compatibility context only and never sufficient evidence by itself.
 
 The HDR recommender covers insect/macro, character/creature, hard-surface/product,
 glass/translucent, vegetation, and environment assets. Every result includes the

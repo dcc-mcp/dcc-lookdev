@@ -45,6 +45,15 @@ def _standard():
         "output_frame_count": 360,
         "auto_exposure_enabled": False,
         "color_transform_valid": True,
+        "ocio_config_id": "maya-builtin-aces-1.3",
+        "working_space": "ACEScg",
+        "display": "sRGB",
+        "view_transform": "ACES 1.0 SDR-video",
+        "output_encoding_count": 1,
+        "gray_rendered_linear_luminance": 0.18,
+        "highlight_clipping_fraction": 0.0,
+        "color_texture_intent_valid": True,
+        "data_texture_intent_valid": True,
     }
 
 
@@ -174,6 +183,32 @@ def test_hdr_overrides_and_pbr_validation_fail_closed(monkeypatch):
     )
 
 
+def test_ocio_and_exposure_evidence_fail_closed(monkeypatch):
+    validate = _load(monkeypatch, "validate_stage").validate_stage
+    wrong = _standard()
+    wrong.update(
+        ocio_config_id="",
+        working_space="scene-linear Rec.709-sRGB",
+        output_encoding_count=2,
+        gray_rendered_linear_luminance=0.42,
+        highlight_clipping_fraction=0.08,
+        color_texture_intent_valid=False,
+        data_texture_intent_valid=False,
+    )
+
+    failures = validate(**wrong)["context"]["failures"]
+    assert "ocio_config_id must identify the active OCIO config" in failures
+    assert "working_space must equal ACEScg" in failures
+    assert "output_encoding_count must equal 1" in failures
+    assert (
+        "gray_rendered_linear_luminance must be between 0.14 and 0.22"
+        in failures
+    )
+    assert "highlight_clipping_fraction must be at most 0.005" in failures
+    assert "color_texture_intent_valid must be true" in failures
+    assert "data_texture_intent_valid must be true" in failures
+
+
 def test_tools_yaml_registers_complete_validation_schema():
     from dcc_mcp_core import SkillCatalog, ToolRegistry
 
@@ -188,10 +223,12 @@ def test_tools_yaml_registers_complete_validation_schema():
         schema = json.loads(schema)
 
     properties = schema["properties"]
-    assert len(properties) == 33
-    assert len(schema["required"]) == 29
+    assert len(properties) == 42
+    assert len(schema["required"]) == 38
     assert "lighting_transform_tracks" in properties
     assert "native_rendered_frame_count" in properties
+    assert "ocio_config_id" in properties
+    assert "gray_rendered_linear_luminance" in properties
 
     recommend_schema = tools["lookdev_turntable__recommend_hdr_preset"][
         "input_schema"
