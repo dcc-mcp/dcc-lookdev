@@ -58,6 +58,14 @@ def _standard():
         "chart_emission_enabled": True,
         "chart_inverse_view_calibrated": True,
         "chart_light_variant_max_rgb_delta": 0.0,
+        "encoded_media_decoded_for_validation": True,
+        "encoded_reference_measurement_space": "display_encoded",
+        "encoded_media_has_indexed_palette": False,
+        "encoded_media_shared_palette": False,
+        "encoded_media_chart_and_reference_entries_reserved": False,
+        "encoded_media_dither_enabled": False,
+        "encoded_chart_temporal_max_rgb_delta": 0.0,
+        "encoded_chart_source_max_rgb_error": 0.0,
         "reference_spheres_lit": True,
         "reference_spheres_emission_enabled": False,
         "reference_sphere_materials_valid": True,
@@ -255,6 +263,53 @@ def test_measured_chart_is_lit_and_non_emissive(monkeypatch):
     assert validate(**measured)["context"]["passed"] is True
 
 
+def test_indexed_media_reference_palette_contract_passes(monkeypatch):
+    validate = _load(monkeypatch, "validate_stage").validate_stage
+    indexed = _standard()
+    indexed.update(
+        encoded_media_has_indexed_palette=True,
+        encoded_media_shared_palette=True,
+        encoded_media_chart_and_reference_entries_reserved=True,
+        encoded_media_dither_enabled=False,
+        encoded_chart_temporal_max_rgb_delta=2.0 / 255.0,
+        encoded_chart_source_max_rgb_error=4.0 / 255.0,
+    )
+
+    assert validate(**indexed)["context"]["passed"] is True
+
+
+def test_encoded_media_reference_contract_fails_closed(monkeypatch):
+    validate = _load(monkeypatch, "validate_stage").validate_stage
+    wrong = _standard()
+    wrong.update(
+        encoded_media_decoded_for_validation=False,
+        encoded_reference_measurement_space="scene_linear",
+        encoded_media_has_indexed_palette=True,
+        encoded_media_shared_palette=False,
+        encoded_media_chart_and_reference_entries_reserved=False,
+        encoded_media_dither_enabled=True,
+        encoded_chart_temporal_max_rgb_delta=3.0 / 255.0,
+        encoded_chart_source_max_rgb_error=5.0 / 255.0,
+    )
+
+    failures = validate(**wrong)["context"]["failures"]
+    assert "encoded_media_decoded_for_validation must be true" in failures
+    assert (
+        "encoded_reference_measurement_space must equal display_encoded" in failures
+    )
+    assert "encoded_media_shared_palette must be true for indexed media" in failures
+    assert (
+        "encoded_media_chart_and_reference_entries_reserved must be true for indexed media"
+        in failures
+    )
+    assert "encoded_media_dither_enabled must be false for indexed media" in failures
+    assert (
+        "encoded_chart_temporal_max_rgb_delta must be at most 2/255 for technical_unlit"
+        in failures
+    )
+    assert "encoded_chart_source_max_rgb_error must be at most 4/255" in failures
+
+
 def test_tools_yaml_registers_complete_validation_schema():
     from dcc_mcp_core import SkillCatalog, ToolRegistry
 
@@ -269,13 +324,16 @@ def test_tools_yaml_registers_complete_validation_schema():
         schema = json.loads(schema)
 
     properties = schema["properties"]
-    assert len(properties) == 50
-    assert len(schema["required"]) == 46
+    assert len(properties) == 58
+    assert len(schema["required"]) == 54
     assert "lighting_transform_tracks" in properties
     assert "native_rendered_frame_count" in properties
     assert "ocio_config_id" in properties
     assert "gray_rendered_linear_luminance" in properties
     assert "chart_reference_mode" in properties
+    assert "encoded_reference_measurement_space" in properties
+    assert "encoded_media_shared_palette" in properties
+    assert "encoded_chart_source_max_rgb_error" in properties
     assert "reference_spheres_lit" in properties
 
     recommend_schema = tools["lookdev_turntable__recommend_hdr_preset"][

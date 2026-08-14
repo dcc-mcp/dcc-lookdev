@@ -11,7 +11,7 @@ allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.6.0"
+    version: "0.7.0"
     layer: domain
     stage: presentation
     tags: [lookdev, tt, pbr, turntable, hdri, color-management, render]
@@ -75,13 +75,15 @@ adapter without hard-coding one host's tool slugs.
    subjects/reflections, visible light helpers, fallback materials, automatic
    exposure, invalid color transforms, or moving reference objects.
 7. Render all 360 frames natively in the DCC, encode one H.264/BT.709 review video,
-   and retain the image sequence for pixel-level validation. Do not synthesize
-   missing frames with optical flow.
+   and retain the display-encoded image sequence for pixel-level comparison. For
+   any indexed derivative such as GIF, use one sequence-wide palette, explicitly
+   reserve the 24 chart entries and three neutral reference entries, and disable
+   dithering. Do not synthesize missing frames with optical flow.
 8. Verify first/middle/last frames, frame count, transform ownership, the active
    OCIO config/working space/display/view, one output encoding, rendered linear
    gray luminance, highlight clipping, chart mode/light independence, true-lit
    non-emissive reference spheres, readable chrome reflection, texture color
-   intent, and media metadata
+   intent, media metadata, and decoded-media reference stability
    before reporting success. A caller-supplied `color_transform_valid=true` is
    compatibility context only and never sufficient evidence by itself.
 
@@ -105,3 +107,6 @@ error; fix the reported contract item and call it again.
 - A technical unlit chart and the three spheres have deliberately different
   contracts: the chart verifies display mapping; the spheres verify lighting and
   PBR response. Never make the spheres light-invariant.
+- Encoded chart checks operate on display-encoded source and decoded review-media
+  pixels. They are not scene-linear material values and cannot replace the
+  scene-linear 18% gray-sphere exposure gate.

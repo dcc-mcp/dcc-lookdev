@@ -88,6 +88,32 @@ fixed. Patch-center RGB values must differ by at most `2/255`. This proves light
 independence without bypassing OCIO. Never bake a LUT into the chart and apply the
 same LUT again at output.
 
+### Encoded-media temporal reference contract
+
+Validate every GIF, video, or other review derivative by decoding it back to RGB
+and comparing it with the display-encoded source image sequence. Both sides of
+this comparison are after the one normal OCIO display/view transform. These RGB
+code values are display references, not scene-linear reflectance or shader input;
+never copy them into Base Color, emission, or the scene-linear gray-sphere gate.
+
+- For a `technical_unlit` chart, decoded patch-center RGB values may vary by at
+  most `2/255` across the sequence.
+- Each decoded patch center may differ from its corresponding display-encoded
+  source frame by at most `4/255` per channel.
+- Palette-indexed media such as GIF must use one palette for the entire sequence.
+  Explicitly reserve entries for all 24 chart patches and three neutral reference
+  representatives, then jointly quantize the remaining scene colors.
+- Disable dithering for indexed review media. Per-frame adaptive palettes and
+  frame-local quantization are invalid even when the source image sequence passes.
+- Continuous-tone or YUV video has no indexed palette. Record
+  `encoded_media_has_indexed_palette=false` instead of inventing palette evidence,
+  but still perform the decoded temporal and source-error checks.
+
+The three reference spheres remain true lit PBR objects, so their pixel values may
+change when physical lighting changes. Reserving their neutral representative
+entries prevents quantization-induced flicker; it does not make their response
+light-invariant.
+
 ## Color and texture intent
 
 - Base Color and ColorChecker: color textures with the declared source gamut.
@@ -138,3 +164,6 @@ same LUT again at output.
 6. The final image sequence contains exactly 360 native rendered frames.
 7. First, middle, and last frames preserve fixed reference-pixel locations.
 8. The single video reports 1920x1080 or greater, 30 fps, 12 seconds, and BT.709 tags.
+9. Every encoded review derivative passes decoded chart temporal stability and
+   source-error gates. Indexed derivatives additionally use one reserved,
+   non-dithered sequence palette.
