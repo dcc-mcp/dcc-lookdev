@@ -126,8 +126,14 @@ def recommend_hdr_preset(
     profile["hdri"] = deepcopy(HDRI_PRESETS[profile["hdri_id"]])
     profile["reference_spheres"] = spheres
     profile["color_pipeline"] = {
+        "mode": "OCIO",
+        "config_id_required": True,
         "working_space": "ACEScg",
         "display": "Rec.709 SDR",
+        "view_transform": "ACES SDR-video",
+        "output_encoding_count": 1,
+        "gray_rendered_linear_luminance_range": [0.14, 0.22],
+        "highlight_clipping_fraction_max": 0.005,
         "auto_exposure_enabled": False,
         "white_balance_kelvin": profile["white_balance_kelvin"],
     }

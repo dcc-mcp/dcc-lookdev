@@ -39,6 +39,15 @@ def validate_stage(
     output_frame_count: int,
     auto_exposure_enabled: bool,
     color_transform_valid: bool,
+    ocio_config_id: str,
+    working_space: str,
+    display: str,
+    view_transform: str,
+    output_encoding_count: int,
+    gray_rendered_linear_luminance: float,
+    highlight_clipping_fraction: float,
+    color_texture_intent_valid: bool,
+    data_texture_intent_valid: bool,
     pbr_validation_mode: bool = True,
     stylized_tint_enabled: bool = False,
     hdri_contains_sun: bool = False,
@@ -143,6 +152,36 @@ def validate_stage(
         ),
         (not auto_exposure_enabled, "auto_exposure_enabled must be false"),
         (color_transform_valid, "color_transform_valid must be true"),
+        (
+            bool(ocio_config_id.strip()),
+            "ocio_config_id must identify the active OCIO config",
+        ),
+        (working_space == "ACEScg", "working_space must equal ACEScg"),
+        (bool(display.strip()), "display must identify the active display"),
+        (
+            bool(view_transform.strip()),
+            "view_transform must identify the active OCIO view",
+        ),
+        (
+            output_encoding_count == 1,
+            "output_encoding_count must equal 1",
+        ),
+        (
+            0.14 <= gray_rendered_linear_luminance <= 0.22,
+            "gray_rendered_linear_luminance must be between 0.14 and 0.22",
+        ),
+        (
+            highlight_clipping_fraction <= 0.005,
+            "highlight_clipping_fraction must be at most 0.005",
+        ),
+        (
+            color_texture_intent_valid,
+            "color_texture_intent_valid must be true",
+        ),
+        (
+            data_texture_intent_valid,
+            "data_texture_intent_valid must be true",
+        ),
         (
             not (pbr_validation_mode and stylized_tint_enabled),
             "stylized_tint_enabled must be false in PBR validation mode",

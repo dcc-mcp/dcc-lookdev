@@ -59,6 +59,14 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 - Work scene-linearly. Use one validated OCIO config where the host supports it.
 - Default review output: ACEScg to Rec.709 SDR, encoded once, with BT.709 container
   metadata. Do not apply a second LUT during video encoding.
+- Record a stable identifier for the active OCIO config plus the resolved working
+  space, display, and view transform. A generic `valid` boolean is not evidence.
+- Measure the 18% sphere in the scene-linear render before the display transform;
+  its median luminance must remain between `0.14` and `0.22`.
+- Measure the fraction of finite RGB samples above `1.0` in the scene-linear
+  preview. It must not exceed `0.005`; diagnose lighting/exposure before grading.
+- Verify Base Color and chart textures as color, and Normal/Roughness/Metallic/AO
+  as data. Missing or ambiguous texture intent fails the preview gate.
 - In PBR validation mode, use neutral illumination and disable stylized tint.
 - When the selected HDRI contains a captured sun, do not add a second sun light.
 
@@ -87,7 +95,8 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 3. The first 180 frames rotate only the subject; the final 180 rotate only lighting.
 4. Reference group and camera have no animation tracks. A visible HDRI may reuse
    the one lighting track when the host cannot decouple lighting from the backdrop.
-5. Preview frames from both halves pass layout, chart direction, exposure, OCIO,
+5. Preview frames from both halves pass layout, chart direction, measured linear
+   exposure, evidence-backed OCIO, single-encoding, texture-intent,
    light-helper visibility, and material checks.
 6. The final image sequence contains exactly 360 native rendered frames.
 7. First, middle, and last frames preserve fixed reference-pixel locations.
