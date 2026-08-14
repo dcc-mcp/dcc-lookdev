@@ -54,6 +54,14 @@ def _standard():
         "highlight_clipping_fraction": 0.0,
         "color_texture_intent_valid": True,
         "data_texture_intent_valid": True,
+        "chart_reference_mode": "technical_unlit",
+        "chart_emission_enabled": True,
+        "chart_inverse_view_calibrated": True,
+        "chart_light_variant_max_rgb_delta": 0.0,
+        "reference_spheres_lit": True,
+        "reference_spheres_emission_enabled": False,
+        "reference_sphere_materials_valid": True,
+        "chrome_reflection_visible": True,
     }
 
 
@@ -209,6 +217,44 @@ def test_ocio_and_exposure_evidence_fail_closed(monkeypatch):
     assert "data_texture_intent_valid must be true" in failures
 
 
+def test_display_reference_contract_fails_closed(monkeypatch):
+    validate = _load(monkeypatch, "validate_stage").validate_stage
+    wrong = _standard()
+    wrong.update(
+        chart_emission_enabled=False,
+        chart_inverse_view_calibrated=False,
+        chart_light_variant_max_rgb_delta=0.05,
+        reference_spheres_lit=False,
+        reference_spheres_emission_enabled=True,
+        reference_sphere_materials_valid=False,
+        chrome_reflection_visible=False,
+    )
+
+    failures = validate(**wrong)["context"]["failures"]
+    assert "chart_emission_enabled must be true for technical_unlit" in failures
+    assert "chart_inverse_view_calibrated must be true for technical_unlit" in failures
+    assert (
+        "chart_light_variant_max_rgb_delta must be at most 2/255 for technical_unlit"
+        in failures
+    )
+    assert "reference_spheres_lit must be true" in failures
+    assert "reference_spheres_emission_enabled must be false" in failures
+    assert "reference_sphere_materials_valid must be true" in failures
+    assert "chrome_reflection_visible must be true" in failures
+
+
+def test_measured_chart_is_lit_and_non_emissive(monkeypatch):
+    validate = _load(monkeypatch, "validate_stage").validate_stage
+    measured = _standard()
+    measured.update(
+        chart_reference_mode="measured_lit",
+        chart_emission_enabled=False,
+        chart_inverse_view_calibrated=False,
+        chart_light_variant_max_rgb_delta=0.2,
+    )
+    assert validate(**measured)["context"]["passed"] is True
+
+
 def test_tools_yaml_registers_complete_validation_schema():
     from dcc_mcp_core import SkillCatalog, ToolRegistry
 
@@ -223,12 +269,14 @@ def test_tools_yaml_registers_complete_validation_schema():
         schema = json.loads(schema)
 
     properties = schema["properties"]
-    assert len(properties) == 42
-    assert len(schema["required"]) == 38
+    assert len(properties) == 50
+    assert len(schema["required"]) == 46
     assert "lighting_transform_tracks" in properties
     assert "native_rendered_frame_count" in properties
     assert "ocio_config_id" in properties
     assert "gray_rendered_linear_luminance" in properties
+    assert "chart_reference_mode" in properties
+    assert "reference_spheres_lit" in properties
 
     recommend_schema = tools["lookdev_turntable__recommend_hdr_preset"][
         "input_schema"

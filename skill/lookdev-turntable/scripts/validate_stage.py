@@ -48,6 +48,14 @@ def validate_stage(
     highlight_clipping_fraction: float,
     color_texture_intent_valid: bool,
     data_texture_intent_valid: bool,
+    chart_reference_mode: str,
+    chart_emission_enabled: bool,
+    chart_inverse_view_calibrated: bool,
+    chart_light_variant_max_rgb_delta: float,
+    reference_spheres_lit: bool,
+    reference_spheres_emission_enabled: bool,
+    reference_sphere_materials_valid: bool,
+    chrome_reflection_visible: bool,
     pbr_validation_mode: bool = True,
     stylized_tint_enabled: bool = False,
     hdri_contains_sun: bool = False,
@@ -183,6 +191,10 @@ def validate_stage(
             "data_texture_intent_valid must be true",
         ),
         (
+            chart_reference_mode in ("measured_lit", "technical_unlit"),
+            "chart_reference_mode must be measured_lit or technical_unlit",
+        ),
+        (
             not (pbr_validation_mode and stylized_tint_enabled),
             "stylized_tint_enabled must be false in PBR validation mode",
         ),
@@ -192,6 +204,49 @@ def validate_stage(
         ),
     )
     failures.extend(message for passed, message in checks if not passed)
+
+    if chart_reference_mode == "technical_unlit":
+        chart_checks = (
+            (
+                chart_emission_enabled,
+                "chart_emission_enabled must be true for technical_unlit",
+            ),
+            (
+                chart_inverse_view_calibrated,
+                "chart_inverse_view_calibrated must be true for technical_unlit",
+            ),
+            (
+                chart_light_variant_max_rgb_delta <= 2.0 / 255.0,
+                "chart_light_variant_max_rgb_delta must be at most 2/255 for technical_unlit",
+            ),
+        )
+    elif chart_reference_mode == "measured_lit":
+        chart_checks = (
+            (
+                not chart_emission_enabled,
+                "chart_emission_enabled must be false for measured_lit",
+            ),
+        )
+    else:
+        chart_checks = ()
+
+    reference_checks = (
+        (reference_spheres_lit, "reference_spheres_lit must be true"),
+        (
+            not reference_spheres_emission_enabled,
+            "reference_spheres_emission_enabled must be false",
+        ),
+        (
+            reference_sphere_materials_valid,
+            "reference_sphere_materials_valid must be true",
+        ),
+        (chrome_reflection_visible, "chrome_reflection_visible must be true"),
+    )
+    failures.extend(
+        message
+        for passed, message in (*chart_checks, *reference_checks)
+        if not passed
+    )
 
     passed = not failures
     return skill_success(

@@ -11,7 +11,7 @@ allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.5.0"
+    version: "0.6.0"
     layer: domain
     stage: presentation
     tags: [lookdev, tt, pbr, turntable, hdri, color-management, render]
@@ -79,7 +79,9 @@ adapter without hard-coding one host's tool slugs.
    missing frames with optical flow.
 8. Verify first/middle/last frames, frame count, transform ownership, the active
    OCIO config/working space/display/view, one output encoding, rendered linear
-   gray luminance, highlight clipping, texture color intent, and media metadata
+   gray luminance, highlight clipping, chart mode/light independence, true-lit
+   non-emissive reference spheres, readable chrome reflection, texture color
+   intent, and media metadata
    before reporting success. A caller-supplied `color_transform_valid=true` is
    compatibility context only and never sufficient evidence by itself.
 
@@ -100,3 +102,6 @@ error; fix the reported contract item and call it again.
   reference stage requires a host that can place scene geometry and render it.
 - Do not color-grade a wrong chart into looking correct. Fix source encoding,
   material intent, working space, or display transform at the owning boundary.
+- A technical unlit chart and the three spheres have deliberately different
+  contracts: the chart verifies display mapping; the spheres verify lighting and
+  PBR response. Never make the spheres light-invariant.
