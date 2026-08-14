@@ -19,6 +19,12 @@ uses neutral PBR validation rules.
 The package contains workflow contracts only. It reuses typed tools supplied by
 the active DCC adapter and does not bundle third-party charts, HDRIs, or models.
 
+Encoded review media is validated after decode. A technical chart must remain
+stable within `2/255` over time and within `4/255` of its display-encoded source.
+GIF-style indexed outputs use one sequence palette with reserved chart/reference
+entries and no dithering. These display-code checks remain separate from
+scene-linear material and 18% gray-sphere measurements.
+
 ## Install
 
 ```powershell

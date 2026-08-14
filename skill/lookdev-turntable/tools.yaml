@@ -178,6 +178,14 @@ tools:
         - chart_emission_enabled
         - chart_inverse_view_calibrated
         - chart_light_variant_max_rgb_delta
+        - encoded_media_decoded_for_validation
+        - encoded_reference_measurement_space
+        - encoded_media_has_indexed_palette
+        - encoded_media_shared_palette
+        - encoded_media_chart_and_reference_entries_reserved
+        - encoded_media_dither_enabled
+        - encoded_chart_temporal_max_rgb_delta
+        - encoded_chart_source_max_rgb_error
         - reference_spheres_lit
         - reference_spheres_emission_enabled
         - reference_sphere_materials_valid
@@ -330,6 +338,35 @@ tools:
           minimum: 0
           maximum: 1
           description: Maximum normalized patch-center RGB delta between renders that change only physical light intensity.
+        encoded_media_decoded_for_validation:
+          type: boolean
+          description: Whether the delivered review media was decoded back to RGB for pixel validation.
+        encoded_reference_measurement_space:
+          type: string
+          enum: [display_encoded]
+          description: Pixel domain for encoded-media chart measurements; it must remain distinct from scene-linear material and sphere measurements.
+        encoded_media_has_indexed_palette:
+          type: boolean
+          description: True for palette-indexed derivatives such as GIF and false for continuous-tone or YUV video.
+        encoded_media_shared_palette:
+          type: boolean
+          description: Whether every indexed frame uses the same sequence-wide palette; ignored for non-indexed media.
+        encoded_media_chart_and_reference_entries_reserved:
+          type: boolean
+          description: Whether an indexed palette explicitly reserves all 24 chart colors and three neutral reference representatives; ignored for non-indexed media.
+        encoded_media_dither_enabled:
+          type: boolean
+          description: Must be false for indexed review media; ignored for non-indexed media.
+        encoded_chart_temporal_max_rgb_delta:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Maximum normalized patch-center RGB delta across decoded encoded frames, measured in display-encoded code values.
+        encoded_chart_source_max_rgb_error:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: Maximum normalized per-channel error between decoded chart patches and corresponding display-encoded source frames.
         reference_spheres_lit:
           type: boolean
           description: Whether gray, white, and chrome spheres respond to physical lights and the HDRI.
@@ -419,6 +456,14 @@ tools:
           chart_emission_enabled: true
           chart_inverse_view_calibrated: true
           chart_light_variant_max_rgb_delta: 0.0
+          encoded_media_decoded_for_validation: true
+          encoded_reference_measurement_space: display_encoded
+          encoded_media_has_indexed_palette: false
+          encoded_media_shared_palette: false
+          encoded_media_chart_and_reference_entries_reserved: false
+          encoded_media_dither_enabled: false
+          encoded_chart_temporal_max_rgb_delta: 0.0
+          encoded_chart_source_max_rgb_error: 0.0
           reference_spheres_lit: true
           reference_spheres_emission_enabled: false
           reference_sphere_materials_valid: true

@@ -52,6 +52,14 @@ def validate_stage(
     chart_emission_enabled: bool,
     chart_inverse_view_calibrated: bool,
     chart_light_variant_max_rgb_delta: float,
+    encoded_media_decoded_for_validation: bool,
+    encoded_reference_measurement_space: str,
+    encoded_media_has_indexed_palette: bool,
+    encoded_media_shared_palette: bool,
+    encoded_media_chart_and_reference_entries_reserved: bool,
+    encoded_media_dither_enabled: bool,
+    encoded_chart_temporal_max_rgb_delta: float,
+    encoded_chart_source_max_rgb_error: float,
     reference_spheres_lit: bool,
     reference_spheres_emission_enabled: bool,
     reference_sphere_materials_valid: bool,
@@ -195,6 +203,18 @@ def validate_stage(
             "chart_reference_mode must be measured_lit or technical_unlit",
         ),
         (
+            encoded_media_decoded_for_validation,
+            "encoded_media_decoded_for_validation must be true",
+        ),
+        (
+            encoded_reference_measurement_space == "display_encoded",
+            "encoded_reference_measurement_space must equal display_encoded",
+        ),
+        (
+            0.0 <= encoded_chart_source_max_rgb_error <= 4.0 / 255.0,
+            "encoded_chart_source_max_rgb_error must be at most 4/255",
+        ),
+        (
             not (pbr_validation_mode and stylized_tint_enabled),
             "stylized_tint_enabled must be false in PBR validation mode",
         ),
@@ -216,8 +236,12 @@ def validate_stage(
                 "chart_inverse_view_calibrated must be true for technical_unlit",
             ),
             (
-                chart_light_variant_max_rgb_delta <= 2.0 / 255.0,
+                0.0 <= chart_light_variant_max_rgb_delta <= 2.0 / 255.0,
                 "chart_light_variant_max_rgb_delta must be at most 2/255 for technical_unlit",
+            ),
+            (
+                0.0 <= encoded_chart_temporal_max_rgb_delta <= 2.0 / 255.0,
+                "encoded_chart_temporal_max_rgb_delta must be at most 2/255 for technical_unlit",
             ),
         )
     elif chart_reference_mode == "measured_lit":
@@ -229,6 +253,24 @@ def validate_stage(
         )
     else:
         chart_checks = ()
+
+    if encoded_media_has_indexed_palette:
+        encoded_palette_checks = (
+            (
+                encoded_media_shared_palette,
+                "encoded_media_shared_palette must be true for indexed media",
+            ),
+            (
+                encoded_media_chart_and_reference_entries_reserved,
+                "encoded_media_chart_and_reference_entries_reserved must be true for indexed media",
+            ),
+            (
+                not encoded_media_dither_enabled,
+                "encoded_media_dither_enabled must be false for indexed media",
+            ),
+        )
+    else:
+        encoded_palette_checks = ()
 
     reference_checks = (
         (reference_spheres_lit, "reference_spheres_lit must be true"),
@@ -244,7 +286,11 @@ def validate_stage(
     )
     failures.extend(
         message
-        for passed, message in (*chart_checks, *reference_checks)
+        for passed, message in (
+            *chart_checks,
+            *encoded_palette_checks,
+            *reference_checks,
+        )
         if not passed
     )
 
