@@ -41,6 +41,24 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 - Roughness: `0.03`.
 - Non-emissive.
 
+### 80% diffuse white sphere
+
+- Base color: linear RGB `(0.80, 0.80, 0.80)`.
+- Metallic: `0`.
+- Roughness: `0.65`.
+- Non-emissive; neutral specular response.
+
+### Reference-sphere contract
+
+- All three spheres are true lit PBR references. They must respond to physical
+  lights and the HDRI; never make them emission materials or compensate them with
+  a baked display LUT.
+- Judge gray and white from the scene-linear render before the display transform.
+  The gray median gate is defined below. Use the white sphere to reveal highlight
+  clipping and diffuse-energy errors, not as a fixed display-code swatch.
+- The chrome sphere must show a readable, neutral environment reflection. A flat,
+  black, invisible, or self-lit chrome sphere fails the reference gate.
+
 ### ColorChecker
 
 - Use a measured modern ColorChecker Classic 24 dataset with recorded provenance.
@@ -51,6 +69,24 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 - Use the bundled MIT-0 digital chart only as an unlit technical reference. It is
   not a measured physical ColorChecker. For lit evaluation, supply or generate the
   external measured chart named by the reference kit and preserve its provenance.
+
+Choose and record exactly one chart mode:
+
+- `measured_lit`: a physical/reflectance chart. Use a non-emissive PBR material
+  and let it respond to lighting. It is evidence for illumination and material
+  color, not an invariant display-code target.
+- `technical_unlit`: a digital display reference. Convert each target display
+  code through the inverse of the active OCIO display/view into the scene working
+  space, write that value to emission, disable base/specular contribution, and
+  then let the complete image receive the same single normal display transform.
+  Do not write ordinary scene-linear sRGB values directly and expect the ACES view
+  to preserve their display codes.
+
+For `technical_unlit`, render a second frame after changing only actual scene-light
+intensities. Keep camera, exposure, OCIO config/display/view, and chart material
+fixed. Patch-center RGB values must differ by at most `2/255`. This proves light
+independence without bypassing OCIO. Never bake a LUT into the chart and apply the
+same LUT again at output.
 
 ## Color and texture intent
 
@@ -95,8 +131,9 @@ Do not store the literal value `0.18` in an sRGB-encoded texture.
 3. The first 180 frames rotate only the subject; the final 180 rotate only lighting.
 4. Reference group and camera have no animation tracks. A visible HDRI may reuse
    the one lighting track when the host cannot decouple lighting from the backdrop.
-5. Preview frames from both halves pass layout, chart direction, measured linear
-   exposure, evidence-backed OCIO, single-encoding, texture-intent,
+5. Preview frames from both halves pass layout, chart direction/mode/light-variant,
+   measured linear exposure, true-lit reference-sphere response, readable chrome,
+   evidence-backed OCIO, single-encoding, texture-intent,
    light-helper visibility, and material checks.
 6. The final image sequence contains exactly 360 native rendered frames.
 7. First, middle, and last frames preserve fixed reference-pixel locations.
