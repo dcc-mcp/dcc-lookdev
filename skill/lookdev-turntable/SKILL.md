@@ -11,12 +11,15 @@ allowed-tools: Bash Read Write
 metadata:
   dcc-mcp:
     dcc: multi-dcc
-    version: "0.7.0"
+    version: "0.8.0"
     layer: domain
     stage: presentation
-    tags: [lookdev, tt, pbr, turntable, hdri, color-management, render]
-    search-hint: "TT lookdev, standard PBR lookdev stage, asset-type HDR recommendation, camera-facing lower-left ColorChecker, three spheres, combined subject then lighting turntable"
+    tags: [lookdev, tt, pbr, turntable, hdri, color-management, render, lighting-sheet]
+    search-hint: "TT lookdev, standard PBR lookdev stage, asset-type HDR recommendation, camera-facing lower-left ColorChecker, three spheres, combined subject then lighting turntable, fixed camera lighting comparison sheet"
     tools: tools.yaml
+    recipes: RECIPES.yaml
+    recipes_undo:
+      lookdev_sheet: manual
     references:
       - "references/*.md"
 ---
@@ -33,6 +36,34 @@ it does not author the asset, invent chart values, or replace host-owned typed t
 3. Keep one task session id through setup, preview, render, and validation.
 4. If a required typed capability is absent, fix the owning adapter minimally. Do
    not substitute open-ended UI automation or embed host-specific scripts here.
+
+## Outcome recipes
+
+`RECIPES.yaml` registers one outcome-level recipe with the core recipe runtime,
+reachable through `recipes__list` / `recipes__get` / `recipes__validate` /
+`recipes__apply`:
+
+| Recipe | One-line ask | Deliverable | `undo` |
+|---|---|---|---|
+| `lookdev_sheet` | "Build me a lighting test sheet for this asset" | One EXR comparison sheet: the subject rendered under N lighting rigs from a single fixed camera, digest-backed | `manual` — remove the rendered frames and sheet, then restore the previous rig |
+
+The sheet is the sibling of the turntable, not a replacement: the turntable
+rotates the subject and the light over time, while the sheet holds the camera
+absolutely fixed and swaps the rig. Both use the same `SubjectRoot` /
+`CameraRoot` vocabulary below, and both reuse this skill's published preset
+tools.
+
+Each recipe carries `examplePrompts`, `recovery`, and an `undo` contract in the
+P0-B enum (`single-step` \| `none` \| `manual`), mirrored in this file's
+`metadata.dcc-mcp.recipes_undo`. `tests/test_lookdev_turntable_recipes.py`
+asserts the contract and proves every rule can fail.
+
+Core returns the plan verbatim and applies no schema defaults, so materialize
+`${x}` placeholders before dispatch:
+
+```bash
+python examples/lookdev_sheet/materialize_plan.py --inputs examples/lookdev_sheet/inputs.example.json
+```
 
 ## Stage contract
 

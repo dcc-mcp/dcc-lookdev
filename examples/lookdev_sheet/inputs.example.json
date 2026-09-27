@@ -1,0 +1,6 @@
+{
+  "asset_type": "hard_surface_product",
+  "lighting_variants": ["studio_small_09", "cloudy_vondelpark"],
+  "variants_dir": "/proj/lookdev/scout/variants",
+  "sheet_path": "/proj/lookdev/scout/scout-lighting-sheet.exr"
+}

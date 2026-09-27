@@ -1,0 +1,237 @@
+# Lighting comparison-sheet recipe pack for the lookdev-turntable skill (PIP-3710).
+#
+# One outcome-level recipe: a single sentence in, one EXR comparison sheet out.
+# This is the sibling of the shipped turntable, not a replacement: the turntable
+# rotates the subject and the light over time, while `lookdev_sheet` holds the
+# camera absolutely fixed and swaps the lighting rig instead. Both reuse the same
+# `SubjectRoot` / `CameraRoot` stage vocabulary, and both reuse this skill's
+# published preset tools for the parts that are genuinely host-neutral.
+#
+#   name             - canonical lookdev verb (snake_case); also the dispatch verb
+#   dcc: any         - host agnostic; steps resolve through `tool_routing`
+#   undo             - single-step | none | manual (P0-B enum, mirrored in SKILL.md)
+#   undo_steps       - concrete rollback steps; `none`/`manual` must spell them
+#   inputs_schema    - Draft 2020-12 input contract (validated by core)
+#   steps            - ordered dispatch plan; domain tools are named directly
+#   output_contract  - Draft 2020-12 schema for the observed tool receipt
+#
+# `output_contract` is a schema, not a label: after the tool runs, the observed
+# result is validated against it. Contracts are only meaningful when they can
+# fail, so the contract requires the digests and counts that prove the renders
+# happened, plus the three `STANDARD.md` gates re-expressed as constants —
+# `camera_fixed`, `working_space: ACEScg`, and `output_encoding_count: 1`.
+#
+# Core returns the plan verbatim: it neither substitutes `${x}` placeholders nor
+# applies schema defaults. Every placeholder therefore names an input that is
+# required or carries a default — including placeholders inside `undo_steps`.
+# `examples/lookdev_sheet/materialize_plan.py` materializes a plan before dispatch.
+#
+# Placeholders are quoted ("${x}") so YAML keeps them as strings.
+
+pack:
+  name: lookdev-turntable
+  version: "0.8.0"
+  dcc: any
+  canonical_namespace: lookdev_sheet
+  output_contract_format: draft-2020-12
+
+# Canonical verb -> the concrete tool each adapter resolves. A `null` entry means
+# no adapter publishes an equivalent: callers must fall back to that adapter's
+# scripting tool and project the result onto the output contract.
+#
+# The two preset verbs are host-neutral domain tools published by this skill, so
+# every adapter resolves them to the same name. Staging, rendering, and sheet
+# packaging are host work with no published single tool and resolve through
+# `scripting_fallback`.
+tool_routing:
+  adapters: [blender, houdini, maya, "3dsmax"]
+  scripting_fallback:
+    blender: blender_scripting__execute_python
+    houdini: houdini_scripting__execute_python
+    maya: maya_scripting__execute_python
+    "3dsmax": 3dsmax_scripting__execute_python
+  tools:
+    get_preset:
+      blender: lookdev_turntable__get_preset
+      houdini: lookdev_turntable__get_preset
+      maya: lookdev_turntable__get_preset
+      "3dsmax": lookdev_turntable__get_preset
+    recommend_hdr_preset:
+      blender: lookdev_turntable__recommend_hdr_preset
+      houdini: lookdev_turntable__recommend_hdr_preset
+      maya: lookdev_turntable__recommend_hdr_preset
+      "3dsmax": lookdev_turntable__recommend_hdr_preset
+    stage_setup:
+      blender: null
+      houdini: null
+      maya: null
+      "3dsmax": null
+    render_variants:
+      blender: null
+      houdini: null
+      maya: null
+      "3dsmax": null
+    build_sheet:
+      blender: null
+      houdini: null
+      maya: null
+      "3dsmax": null
+
+recipes:
+  - name: lookdev_sheet
+    dcc: any
+    description: >-
+      Render one subject under N lighting rigs from a single fixed camera and
+      package the results into one digest-backed EXR comparison sheet.
+    side_effects:
+      modifies: true
+      creates: true
+      deletes: false
+      targets: [lighting_rig, exr_frames, sheet_file]
+    undo: manual
+    undo_steps:
+      - >-
+        Remove the rendered EXR frames under "${variants_dir}" and the comparison
+        sheet at "${sheet_path}".
+      - >-
+        Restore the previous lighting rig, or close the scene without saving and
+        reopen the last saved version.
+    examplePrompts:
+      - "Build me a lighting test sheet for this asset"
+      - "Compare these three lighting setups on a fixed camera"
+      - "Show how this material reads under studio versus overcast light"
+    recovery:
+      - when: "recommend_hdr_preset rejects the asset_type or hdri_id"
+        next: >-
+          Re-run lookdev_sheet with an asset_type from the documented enum and an
+          hdri_id it advertises; do not stage lights against an unknown HDR profile.
+      - when: "render_variants produced fewer EXR frames than lighting_variants"
+        next: >-
+          Delete the partial frames under variants_dir, confirm the renderer wrote
+          every variant, then re-run lookdev_sheet before building the sheet.
+      - when: "the delivered sheet fails the ACEScg or single-output-encoding gate"
+        next: >-
+          Delete the sheet at sheet_path, set the working space to ACEScg and apply
+          exactly one display encoding per the STANDARD.md gates, then re-render.
+      - when: "the lighting rig already replaced the previous one and must be rolled back"
+        next: >-
+          Remove the frames under variants_dir and the sheet at sheet_path, then
+          restore the previous rig or reopen the last saved scene.
+    inputs_schema:
+      type: object
+      additionalProperties: false
+      required: [asset_type, lighting_variants, variants_dir, sheet_path]
+      properties:
+        asset_type:
+          type: string
+          enum: [insect_macro, character_creature, hard_surface_product, glass_translucent, vegetation, environment]
+        lighting_variants:
+          type: array
+          minItems: 2
+          maxItems: 8
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+          description: Named lighting rigs to swap while the camera stays fixed.
+        variants_dir:
+          type: string
+          minLength: 1
+          maxLength: 4096
+          description: Directory the per-variant EXR frames are written to.
+        sheet_path:
+          type: string
+          minLength: 1
+          maxLength: 4096
+          description: Output path of the tiled EXR comparison sheet.
+        exposure_ev:
+          type: number
+          minimum: -10
+          maximum: 10
+          default: 0.0
+        white_balance_kelvin:
+          type: integer
+          minimum: 2000
+          maximum: 12000
+          default: 6500
+        overwrite:
+          type: boolean
+          default: false
+    steps:
+      - tool: lookdev_turntable__get_preset
+        arguments: {}
+      - tool: lookdev_turntable__recommend_hdr_preset
+        arguments:
+          asset_type: "${asset_type}"
+          exposure_ev: "${exposure_ev}"
+          white_balance_kelvin: "${white_balance_kelvin}"
+      - tool: lookdev_sheet__stage_setup
+        arguments:
+          asset_type: "${asset_type}"
+          lighting_variants: "${lighting_variants}"
+      - tool: lookdev_sheet__render_variants
+        arguments:
+          lighting_variants: "${lighting_variants}"
+          variants_dir: "${variants_dir}"
+          exposure_ev: "${exposure_ev}"
+      - tool: lookdev_sheet__build_sheet
+        arguments:
+          lighting_variants: "${lighting_variants}"
+          variants_dir: "${variants_dir}"
+          sheet_path: "${sheet_path}"
+          overwrite: "${overwrite}"
+    output_contract:
+      type: object
+      required:
+        - asset_type
+        - lighting_variant_count
+        - rendered_exr_count
+        - sheet_path
+        - sheet_sha256
+        - camera_fixed
+        - working_space
+        - output_encoding_count
+      properties:
+        asset_type:
+          type: string
+          enum: [insect_macro, character_creature, hard_surface_product, glass_translucent, vegetation, environment]
+        lighting_variant_count:
+          type: integer
+          minimum: 2
+          maximum: 8
+        rendered_exr_count:
+          type: integer
+          minimum: 2
+          maximum: 8
+        sheet_path:
+          type: string
+          minLength: 1
+        sheet_sha256:
+          type: string
+          pattern: "^[0-9a-f]{64}$"
+        camera_fixed:
+          type: boolean
+          const: true
+          description: The whole point of the sheet — the camera never moved between variants.
+        working_space:
+          type: string
+          const: ACEScg
+        output_encoding_count:
+          type: integer
+          const: 1
+          description: Exactly one display encoding from scene-linear to review media.
+        variants:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            type: object
+            required: [name, exr_path, exr_sha256]
+            properties:
+              name: {type: string, minLength: 1}
+              exr_path: {type: string, minLength: 1}
+              exr_sha256:
+                type: string
+                pattern: "^[0-9a-f]{64}$"
+    toolset_profiles: [lookdev-turntable]
